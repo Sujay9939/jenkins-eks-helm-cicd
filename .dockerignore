@@ -1,0 +1,9 @@
+.git
+.gitignore
+Jenkinsfile
+README.md
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+venv
