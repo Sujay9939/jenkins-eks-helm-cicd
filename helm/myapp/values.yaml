@@ -1,0 +1,30 @@
+replicaCount: 2
+
+image:
+  repository: YOUR_DOCKERHUB_USERNAME/jenkins-eks-app
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5000
+
+containerPort: 5000
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+deployment:
+  strategy:
+    type: RollingUpdate
+
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
