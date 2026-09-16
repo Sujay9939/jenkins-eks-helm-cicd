@@ -1,18 +1,16 @@
 pipeline {
 
-    agent {
-        label 'docker-agent'
-    }
+    agent any
 
     environment {
 
-        DOCKER_IMAGE = "YOUR_DOCKERHUB_USERNAME/jenkins-eks-app"
+        DOCKER_IMAGE = "sujaygope9939/jenkins-eks-app"
 
         DOCKER_CREDENTIALS = credentials('dockerhub-credentials')
 
-        AWS_REGION = 'ap-south-1'
+        AWS_REGION = 'eu-north-1'
 
-        EKS_CLUSTER = 'YOUR-EKS-CLUSTER-NAME'
+        EKS_CLUSTER = 'casual-blues-monster'
 
         HELM_RELEASE = 'myapp'
 
@@ -25,7 +23,7 @@ pipeline {
 
             steps {
 
-                echo 'Checking out source code...'
+                echo 'https://github.com/Sujay9939/jenkins-eks-helm-cicd.git'
 
                 checkout scm
             }
