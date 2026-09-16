@@ -20,20 +20,14 @@ pipeline {
     stages {
 
         stage('Checkout') {
-
             steps {
-
-                echo 'https://github.com/Sujay9939/jenkins-eks-helm-cicd.git'
-
+                echo 'Checking out source code...'
                 checkout scm
             }
         }
 
-
         stage('Install Dependencies') {
-
             steps {
-
                 sh '''
                     python3 -m venv venv
 
@@ -46,35 +40,25 @@ pipeline {
             }
         }
 
-
         stage('Unit Tests') {
-
             steps {
-
                 sh '''
                     . venv/bin/activate
 
-                    pytest \
-                    app/tests \
+                    pytest app/tests \
                     --junitxml=test-results.xml
                 '''
             }
 
             post {
-
                 always {
-
                     junit 'test-results.xml'
                 }
             }
         }
 
-
-
         stage('Docker Build') {
-
             steps {
-
                 sh '''
                     docker build \
                     -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
@@ -84,25 +68,19 @@ pipeline {
             }
         }
 
-
         stage('Docker Hub Login') {
-
             steps {
-
                 sh '''
                     echo "${DOCKER_CREDENTIALS_PSW}" | \
                     docker login \
-                    -username "${DOCKER_CREDENTIALS_USR}" \
+                    --username "${DOCKER_CREDENTIALS_USR}" \
                     --password-stdin
                 '''
             }
         }
 
-
         stage('Push Docker Image') {
-
             steps {
-
                 sh '''
                     docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
 
@@ -111,11 +89,8 @@ pipeline {
             }
         }
 
-
         stage('Configure EKS Access') {
-
             steps {
-
                 sh '''
                     aws eks update-kubeconfig \
                     --region ${AWS_REGION} \
@@ -126,27 +101,34 @@ pipeline {
             }
         }
 
-
         stage('Helm Lint') {
-
             steps {
-
                 sh '''
                     helm lint helm/myapp
                 '''
             }
         }
 
+        stage('Production Approval') {
 
-        stage('Helm Deploy') {
+            when {
+                branch 'main'
+            }
 
             steps {
+                input message: 'Deploy this version to production?',
+                      ok: 'Deploy'
+            }
+        }
 
+        stage('Helm Deploy') {
+            steps {
                 sh '''
                     helm upgrade --install ${HELM_RELEASE} \
                     helm/myapp \
                     --namespace ${K8S_NAMESPACE} \
                     --create-namespace \
+                    --set image.repository=${DOCKER_IMAGE} \
                     --set image.tag=${BUILD_NUMBER} \
                     --wait \
                     --timeout 5m \
@@ -155,60 +137,39 @@ pipeline {
             }
         }
 
-
         stage('Deployment Verification') {
-
             steps {
-
                 sh '''
                     kubectl rollout status \
                     deployment/${HELM_RELEASE} \
                     -n ${K8S_NAMESPACE} \
                     --timeout=180s
 
+                    echo "Pods:"
                     kubectl get pods \
                     -n ${K8S_NAMESPACE}
 
+                    echo "Services:"
                     kubectl get svc \
                     -n ${K8S_NAMESPACE}
                 '''
             }
         }
-
-
-        stage('Production Approval') {
-
-            when {
-
-                branch 'main'
-            }
-
-            steps {
-
-                input message: 'Deploy this version to production?', \
-                      ok: 'Deploy'
-            }
-        }
     }
-
 
     post {
 
         success {
-
             echo 'CI/CD pipeline completed successfully.'
         }
 
         failure {
-
             echo 'Pipeline failed. Check the Jenkins console output.'
         }
 
         always {
-
             sh '''
                 docker logout || true
-
                 docker system prune -f || true
             '''
         }
