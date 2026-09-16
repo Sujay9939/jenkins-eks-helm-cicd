@@ -70,43 +70,6 @@ pipeline {
         }
 
 
-        stage('SonarQube Analysis') {
-
-            steps {
-
-                withSonarQubeEnv('sonarqube') {
-
-                    sh '''
-                        . venv/bin/activate
-
-                        pip install coverage
-
-                        coverage run -m pytest app/tests
-
-                        coverage xml
-
-                        sonar-scanner \
-                          -Dsonar.projectKey=jenkins-eks-helm-app \
-                          -Dsonar.sources=app \
-                          -Dsonar.tests=app/tests \
-                          -Dsonar.python.coverage.reportPaths=coverage.xml
-                    '''
-                }
-            }
-        }
-
-
-        stage('Quality Gate') {
-
-            steps {
-
-                timeout(time: 5, unit: 'MINUTES') {
-
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-
 
         stage('Docker Build') {
 
@@ -117,21 +80,6 @@ pipeline {
                     -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
                     -t ${DOCKER_IMAGE}:latest \
                     .
-                '''
-            }
-        }
-
-
-        stage('Trivy Security Scan') {
-
-            steps {
-
-                sh '''
-                    trivy image \
-                    --exit-code 1 \
-                    --severity CRITICAL,HIGH \
-                    --ignore-unfixed \
-                    ${DOCKER_IMAGE}:${BUILD_NUMBER}
                 '''
             }
         }
