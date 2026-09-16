@@ -84,7 +84,7 @@ pipeline {
                 sh '''
                     docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
 
-                    docker push ${DOCKER_IMAGE}:latest
+                #    docker push ${DOCKER_IMAGE}:latest
                 '''
             }
         }
