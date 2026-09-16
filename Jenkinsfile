@@ -6,7 +6,7 @@ pipeline {
 
         DOCKER_IMAGE = "sujaygope9939/jenkins-eks-app"
 
-        DOCKER_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKER_CREDENTIALS = credentials('docker-hub-creds')
 
         AWS_REGION = 'eu-north-1'
 
