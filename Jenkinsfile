@@ -4,7 +4,7 @@ pipeline {
 
     environment {
 
-        DOCKER_IMAGE = "docker.io/sujaygope9939/jenkins-eks-app"
+        DOCKER_IMAGE = "sujaygope9939/jenkins-eks-app"
 
         DOCKER_CREDENTIALS = credentials('docker-hub-creds')
 
