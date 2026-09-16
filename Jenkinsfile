@@ -92,7 +92,7 @@ pipeline {
                 sh '''
                     echo "${DOCKER_CREDENTIALS_PSW}" | \
                     docker login \
-                    -u "${DOCKER_CREDENTIALS_USR}" \
+                    -username "${DOCKER_CREDENTIALS_USR}" \
                     --password-stdin
                 '''
             }
