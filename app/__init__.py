@@ -1,1 +1,1 @@
-app/__init__.py
+pytest app/tests --junitxml=test-results.xml
