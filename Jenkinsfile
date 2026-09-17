@@ -30,11 +30,8 @@ pipeline {
             steps {
                 sh '''
                     python3 -m venv venv
-
                     . venv/bin/activate
-
                     pip install --upgrade pip
-
                     pip install -r app/requirements.txt
                 '''
             }
@@ -44,9 +41,7 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
-
-                    pytest app/tests \
-                    export PYTHONPATH="${WORKSPACE}"
+                    export PYTHONPATH="$PWD"
                     pytest -v app/tests --junitxml=test-results.xml
                 '''
             }
@@ -62,9 +57,9 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                    -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
-                    -t ${DOCKER_IMAGE}:latest \
-                    .
+                        -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
+                        -t ${DOCKER_IMAGE}:latest \
+                        .
                 '''
             }
         }
@@ -74,8 +69,8 @@ pipeline {
                 sh '''
                     echo "${DOCKER_CREDENTIALS_PSW}" | \
                     docker login \
-                    --username "${DOCKER_CREDENTIALS_USR}" \
-                    --password-stdin
+                        --username "${DOCKER_CREDENTIALS_USR}" \
+                        --password-stdin
                 '''
             }
         }
@@ -84,7 +79,6 @@ pipeline {
             steps {
                 sh '''
                     docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
-
                     docker push ${DOCKER_IMAGE}:latest
                 '''
             }
@@ -94,8 +88,8 @@ pipeline {
             steps {
                 sh '''
                     aws eks update-kubeconfig \
-                    --region ${AWS_REGION} \
-                    --name ${EKS_CLUSTER}
+                        --region ${AWS_REGION} \
+                        --name ${EKS_CLUSTER}
 
                     kubectl get nodes
                 '''
@@ -111,7 +105,6 @@ pipeline {
         }
 
         stage('Production Approval') {
-
             when {
                 branch 'main'
             }
@@ -126,14 +119,14 @@ pipeline {
             steps {
                 sh '''
                     helm upgrade --install ${HELM_RELEASE} \
-                    helm/myapp \
-                    --namespace ${K8S_NAMESPACE} \
-                    --create-namespace \
-                    --set image.repository=${DOCKER_IMAGE} \
-                    --set image.tag=${BUILD_NUMBER} \
-                    --wait \
-                    --timeout 5m \
-                    --rollback-on-failure
+                        helm/myapp \
+                        --namespace ${K8S_NAMESPACE} \
+                        --create-namespace \
+                        --set image.repository=${DOCKER_IMAGE} \
+                        --set image.tag=${BUILD_NUMBER} \
+                        --wait \
+                        --timeout 5m \
+                        --rollback-on-failure
                 '''
             }
         }
@@ -142,17 +135,15 @@ pipeline {
             steps {
                 sh '''
                     kubectl rollout status \
-                    deployment/${HELM_RELEASE} \
-                    -n ${K8S_NAMESPACE} \
-                    --timeout=180s
+                        deployment/${HELM_RELEASE} \
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=180s
 
                     echo "Pods:"
-                    kubectl get pods \
-                    -n ${K8S_NAMESPACE}
+                    kubectl get pods -n ${K8S_NAMESPACE}
 
                     echo "Services:"
-                    kubectl get svc \
-                    -n ${K8S_NAMESPACE}
+                    kubectl get svc -n ${K8S_NAMESPACE}
                 '''
             }
         }
