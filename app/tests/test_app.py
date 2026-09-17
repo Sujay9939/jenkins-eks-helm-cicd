@@ -1,13 +1,3 @@
-import sys
-import os
-
-sys.path.insert(
-    0,
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..")
-    )
-)
-
 from app import app
 
 
@@ -17,7 +7,7 @@ def test_home():
     response = client.get("/")
 
     assert response.status_code == 200
-    assert b"Jenkins CI/CD Project" in response.data
+    assert b"NovaCart" in response.data
 
 
 def test_health():
@@ -26,4 +16,8 @@ def test_health():
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json["status"] == "UP"
+
+    data = response.get_json()
+
+    assert data["status"] == "UP"
+    assert data["application"] == "novacart-ecommerce"
