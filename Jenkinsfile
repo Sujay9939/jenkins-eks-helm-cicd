@@ -46,7 +46,8 @@ pipeline {
                     . venv/bin/activate
 
                     pytest app/tests \
-                    --junitxml=test-results.xml
+                    export PYTHONPATH="${WORKSPACE}"
+                    pytest -v app/tests --junitxml=test-results.xml
                 '''
             }
 
